@@ -1,6 +1,7 @@
 let input = document.getElementById("inputBox");
 let buttons = document.querySelectorAll("button");
 
+// Auto-resize font based on length
 function adjustFontSize() {
     let len = input.value.length;
 
@@ -18,6 +19,29 @@ function adjustFontSize() {
     }
 }
 
+// Calculate result
+function calculate() {
+    try {
+        let result = eval(input.value);
+
+        if (
+            result === Infinity ||
+            result === -Infinity ||
+            Number.isNaN(result)
+        ) {
+            input.value = "Undefined";
+        } else {
+            input.value = result;
+        }
+    }
+    catch {
+        input.value = "Error";
+    }
+
+    adjustFontSize();
+}
+
+// Button clicks
 buttons.forEach(button => {
 
     button.addEventListener("click", (e) => {
@@ -25,26 +49,7 @@ buttons.forEach(button => {
         let value = e.target.innerText;
 
         if (value === "=") {
-
-            try {
-
-                let result = eval(input.value);
-
-                if (
-                    result === Infinity ||
-                    result === -Infinity ||
-                    Number.isNaN(result)
-                ) {
-                    input.value = "Undefined";
-                }
-                else {
-                    input.value = result;
-                }
-
-            } catch {
-                input.value = "Error";
-            }
-
+            calculate();
         }
 
         else if (value === "AC") {
@@ -60,7 +65,33 @@ buttons.forEach(button => {
         }
 
         adjustFontSize();
-
     });
 
 });
+
+// Keyboard support
+input.addEventListener("keydown", function(e) {
+
+    const allowedKeys = [
+        "0","1","2","3","4","5","6","7","8","9",
+        "+","-","*","/","%",
+        ".",
+        "Backspace",
+        "Delete",
+        "ArrowLeft",
+        "ArrowRight",
+        "Enter"
+    ];
+
+    if (!allowedKeys.includes(e.key)) {
+        e.preventDefault();
+    }
+
+    if (e.key === "Enter") {
+        e.preventDefault();
+        calculate();
+    }
+});
+
+// Resize while typing
+input.addEventListener("input", adjustFontSize);
