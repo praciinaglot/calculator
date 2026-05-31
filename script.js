@@ -1,27 +1,28 @@
 let input = document.getElementById("inputBox");
 let buttons = document.querySelectorAll("button");
 
-// Auto-resize font based on length
+const operators = ["+", "-", "*", "/", "%"];
+
 function adjustFontSize() {
-    let len = input.value.length;
+    const len = input.value.length;
 
     if (len > 20) {
         input.style.fontSize = "20px";
-    }
-    else if (len > 15) {
+    } else if (len > 15) {
         input.style.fontSize = "25px";
-    }
-    else if (len > 10) {
+    } else if (len > 10) {
         input.style.fontSize = "30px";
-    }
-    else {
+    } else {
         input.style.fontSize = "40px";
     }
 }
 
-// Calculate result
 function calculate() {
+
+    if (input.value.trim() === "") return;
+
     try {
+
         let result = eval(input.value);
 
         if (
@@ -30,47 +31,83 @@ function calculate() {
             Number.isNaN(result)
         ) {
             input.value = "Undefined";
-        } else {
+        }
+        else {
+
+            if (Number.isFinite(result)) {
+                result = parseFloat(result.toFixed(8));
+            }
+
             input.value = result;
         }
-    }
-    catch {
+
+    } catch {
         input.value = "Error";
     }
 
     adjustFontSize();
 }
 
-// Button clicks
 buttons.forEach(button => {
 
-    button.addEventListener("click", (e) => {
+    button.addEventListener("click", () => {
 
-        let value = e.target.innerText;
+        const value = button.innerText;
+        const lastChar = input.value.slice(-1);
 
         if (value === "=") {
             calculate();
+            return;
         }
 
-        else if (value === "AC") {
+        if (value === "AC") {
             input.value = "";
+            adjustFontSize();
+            return;
         }
 
-        else if (value === "DEL") {
+        if (value === "DEL") {
             input.value = input.value.slice(0, -1);
+            adjustFontSize();
+            return;
         }
 
-        else {
-            input.value += value;
+        if (input.value.length >= 25) {
+            return;
         }
 
+        if (operators.includes(value)) {
+
+            if (input.value === "") return;
+
+            if (operators.includes(lastChar)) {
+                input.value =
+                    input.value.slice(0, -1) + value;
+            } else {
+                input.value += value;
+            }
+
+            adjustFontSize();
+            return;
+        }
+
+        if (value === ".") {
+
+            let parts = input.value.split(/[+\-*/%]/);
+
+            if (
+                parts[parts.length - 1].includes(".")
+            ) {
+                return;
+            }
+        }
+
+        input.value += value;
         adjustFontSize();
     });
-
 });
 
-// Keyboard support
-input.addEventListener("keydown", function(e) {
+input.addEventListener("keydown", function (e) {
 
     const allowedKeys = [
         "0","1","2","3","4","5","6","7","8","9",
@@ -80,18 +117,47 @@ input.addEventListener("keydown", function(e) {
         "Delete",
         "ArrowLeft",
         "ArrowRight",
-        "Enter"
+        "Enter",
+        "Escape"
     ];
 
     if (!allowedKeys.includes(e.key)) {
         e.preventDefault();
+        return;
+    }
+
+    const lastChar = input.value.slice(-1);
+
+    if (
+        operators.includes(e.key) &&
+        operators.includes(lastChar)
+    ) {
+        e.preventDefault();
+        return;
+    }
+
+    if (e.key === ".") {
+
+        let parts = input.value.split(/[+\-*/%]/);
+
+        if (
+            parts[parts.length - 1].includes(".")
+        ) {
+            e.preventDefault();
+            return;
+        }
     }
 
     if (e.key === "Enter") {
         e.preventDefault();
         calculate();
     }
+
+    if (e.key === "Escape") {
+        e.preventDefault();
+        input.value = "";
+        adjustFontSize();
+    }
 });
 
-// Resize while typing
 input.addEventListener("input", adjustFontSize);
